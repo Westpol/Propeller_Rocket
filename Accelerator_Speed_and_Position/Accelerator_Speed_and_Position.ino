@@ -29,16 +29,29 @@
   Distributed as is; no warrenty given.
 */
 
+/*
+Help for the low pass filter here:
+https://www.norwegiancreations.com/2016/03/arduino-tutorial-simple-high-pass-band-pass-and-band-stop-filtering/
+*/
+
 #include <Wire.h>                 // Must include Wire library for I2C
 #include "SparkFun_MMA8452Q.h"    // Click here to get the library: http://librarymanager/All#SparkFun_MMA8452Q
 
 MMA8452Q accel;                   // create instance of the MMA8452 class
 
-unsigned long micro = 0;
-unsigned long milli = 0;
-float speed = 0;
-float position = 0;
-float g = 9.81;
+
+unsigned long micro = 0;    // used for adding t into the Equations
+unsigned long milli = 0;    // used for slowing down print functions (10 per Second right now)
+float speed = 0;        // Speed in m/s
+float position = 0;       // Position in Meters
+float g = 9.81;       // Acceleration in Germany
+float acc;
+
+//lowpass Filter
+float EMA_a = 0.05;    //initialization of EMA alpha
+float EMA_S = 0;        //initialization of EMA S
+int highpass = 0;
+
 
 void setup() {
   Serial.begin(115200);
@@ -56,7 +69,8 @@ void setup() {
 void loop() {
   if (accel.available()) {      // Wait for new data from accelerometer
 
-    float acc = accel.getCalculatedX();
+    acc = accel.getCalculatedX() * 2.0;
+    EMA_S = (EMA_a*acc) + ((1.0-EMA_a)*EMA_S);
 
     speed += acc * g * ((micros() - micro) / 1000000.0);
     position += speed * ((micros() - micro) / 1000000.0);
@@ -65,11 +79,19 @@ void loop() {
 
   }
   if(milli <= millis()){
+    Serial.print(acc);
+    Serial.print("\t");
+    Serial.print(EMA_S);
+    Serial.println();
+    milli = millis() + 10;
+  }
+
+  /*if(milli <= millis()){
     Serial.print(speed);
     Serial.print("\t");
     Serial.print(position);
     Serial.println();
-    milli += 100;
-  }
+    milli += 1;
+  }*/
 
 }
