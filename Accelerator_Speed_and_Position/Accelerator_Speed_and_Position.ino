@@ -72,26 +72,19 @@ void loop() {
     acc = accel.getCalculatedX() * 2.0;
     EMA_S = (EMA_a*acc) + ((1.0-EMA_a)*EMA_S);
 
-    speed += acc * g * ((micros() - micro) / 1000000.0);
+    speed += EMA_S * g * ((micros() - micro) / 1000000.0);
     position += speed * ((micros() - micro) / 1000000.0);
 
     micro = micros();
 
   }
-  if(milli <= millis()){
-    Serial.print(acc);
-    Serial.print("\t");
-    Serial.print(EMA_S);
-    Serial.println();
-    milli = millis() + 10;
-  }
 
-  /*if(milli <= millis()){
+  if(milli <= millis()){
     Serial.print(speed);
     Serial.print("\t");
     Serial.print(position);
     Serial.println();
-    milli += 1;
-  }*/
+    milli += 100;
+  }
 
 }
