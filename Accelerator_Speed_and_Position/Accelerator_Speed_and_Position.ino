@@ -44,13 +44,12 @@ unsigned long micro = 0;    // used for adding t into the Equations
 unsigned long milli = 0;    // used for slowing down print functions (10 per Second right now)
 float speed = 0;        // Speed in m/s
 float position = 0;       // Position in Meters
-float g = 9.81;       // Acceleration in Germany
 float acc;
+float g = 9.81;       // Acceleration made in Germany
 
 //lowpass Filter
-float EMA_a = 0.05;    //initialization of EMA alpha
-float EMA_S = 0;        //initialization of EMA S
-int highpass = 0;
+float lowpass = 0;        //initialization of EMA S
+float EMA_a = 0.05;    // the lower the number, the higher the filtering (.05 seems pretty solid, higher if dampened enough)
 
 
 void setup() {
@@ -70,9 +69,9 @@ void loop() {
   if (accel.available()) {      // Wait for new data from accelerometer
 
     acc = accel.getCalculatedX() * 2.0;
-    EMA_S = (EMA_a*acc) + ((1.0-EMA_a)*EMA_S);
+    lowpass = (EMA_a*acc) + ((1.0-EMA_a)*lowpass);
 
-    speed += EMA_S * g * ((micros() - micro) / 1000000.0);
+    speed += lowpass * g * ((micros() - micro) / 1000000.0);
     position += speed * ((micros() - micro) / 1000000.0);
 
     micro = micros();
